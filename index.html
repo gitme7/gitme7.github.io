@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>주소 검색</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function searchAddress() {
+            const url = "https://dapi.kakao.com/v2/local/search/address.json";
+            const headers = {
+                "Authorization": "KakaoAK 656e3c5e196b064eee5a2aefa400f0cf"
+            }; // REST API 키(유효한 키)
+            const query = document.getElementById("inputAddress").value; // 입력한 주소값 가져오기
+
+            $.ajax({
+                url: url,
+                data: {query: query},
+                headers: headers,
+                type: "GET",
+                dataType: "json",
+                success: function(result) {
+                    displayResult(result);
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        function displayResult(result) {
+            const documents = result.documents;
+            let output = "";
+
+            if (documents.length > 0) {
+                const firstDocument = documents[0];
+                output = `
+                    <h2>검색 결과</h2>
+                    <p>주소: ${firstDocument.address.address_name}</p>
+                    <p>위도: ${firstDocument.address.y}</p>
+                    <p>경도: ${firstDocument.address.x}</p>
+                    <p>도로명주소: ${firstDocument.road_address.address_name}</p>
+                `;
+            } else {
+                output = "검색 결과가 없습니다.";
+            }
+
+            document.getElementById("result").innerHTML = output;
+        }
+    </script>
+</head>
+<body>
+    <input type="text" id="inputAddress" placeholder="주소 입력">
+    <button onclick="searchAddress()">주소 검색</button>
+    <div id="result"></div>
+</body>
+</html>
+오후 10:49 2023-06-25
