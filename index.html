@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>주소 검색</title>
+    <link href='https://fonts.googleapis.com/css?family=Nanum+Gothic:400,700,800&display=swap' rel='stylesheet'>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
@@ -11,34 +12,44 @@
             flex-direction: column;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: "Nanum Gothic", sans-serif;
             position: relative;
         }
         h1 {
-            font-size: 3em;
+            font-size: 2.4em;
             margin-bottom: 30px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .container {
+          width: 100%;
+          max-width: 720px;
+          margin: 0 auto;
         }
         .search-container {
             display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
         input, button {
             margin-bottom: 10px;
         }
         input#inputAddress{
-            width: 350px;
+            width: 300px;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #0B6CFE;
             border-radius: 24px;
             outline: none;
             box-sizing: border-box;
         }
-        button {
+        button.searchBtn {
             padding: 10px;
-            background-color: white;
-            border: 0;
-            border-radius: 2px;
-            font-weight: 600;
-            margin-left: -45px;
+            background-color: transparent;
+            color: #0B6CFE;
+            border: none;
+            border-radius: 24px;
+            font-weight: bold;
             outline: none;
             cursor: pointer;
         }
@@ -46,11 +57,65 @@
             margin-top: 20px;
             text-align: center;
         }
+        .outputTable {
+            font-size: 15px;
+            border-collapse: collapse;
+            border: 1px solid #0B6CFE;
+            margin: 0 auto;
+        }
+        .outputTable th {
+            background-color: #F2F9FF;
+            color: #000000;
+            font-weight: bold;
+            padding: 8px;
+            border-bottom: 1px solid #0B6CFE;
+            border-right: 1px solid #0B6CFE;
+            border-left: 1px solid #0B6CFE;
+        }
+        .outputTable td {
+            background-color: #F2F9FF;
+            padding: 8px;
+            text-align: center;
+            color: #000000;
+            border-bottom: 1px solid #0B6CFE;
+            border-right: 1px solid #0B6CFE;
+        }
+        .outputTable tr:last-child td {
+            border-bottom: 1px solid #0B6CFE;
+        }
+        button.copyBtn {
+            padding: 5px 10px;
+            background-color: #FFFFFF;
+            border: 1px solid #0B6CFE;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #0B6CFE;
+            outline: none;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
         .credit {
             position: absolute;
             top: 15px;
             right: 25px;
             color: #999;
+            font-size: 14px;
+        }
+        /* Toast message styles */
+        .toast-container {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
+        }
+        .toast-message {
+            display: none;
+            background-color: #333;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
             font-size: 14px;
         }
     </style>
@@ -80,11 +145,7 @@
                     displayResult(result);
                 },
                 error: function(xhr, status, error) {
-                    if (xhr.status == 401) {
-                        displayError("API 인증이 실패하였습니다.");
-                    } else {
-                        displayError("검색 결과가 없습니다. 정확한 주소를 입력해주세요.");
-                    }
+                    displayError("검색 결과가 없습니다. 정확한 주소를 입력해주세요.");
                 }
             });
         }
@@ -95,11 +156,25 @@
 
             if (documents.length > 0) {
                 const firstDocument = documents[0];
-                const mergedAddress = firstDocument.road_address.address_name + " (" + firstDocument.address.address_name + ")";
+                const roadAddress = firstDocument.road_address.address_name;
+                const address = firstDocument.address.address_name;
                 output = `
-                    <p>주소: ${mergedAddress}</p>
-                    <p>위도(y): <span id="latitude">${firstDocument.address.y}</span> <button onClick="copyToClipboard('latitude')">복사</button></p>
-                    <p>경도(x): <span id="longitude">${firstDocument.address.x}</span> <button onClick="copyToClipboard('longitude')">복사</button></p>
+                    <table class="outputTable">
+                        <tr>
+                            <th>주소</th>
+                            <td>${roadAddress}<br>(${address})</td>
+                        </tr>
+                        <tr>
+                            <th>위도(y)</th>
+                            <td><span id="latitude">${firstDocument.address.y}</span></td>
+                        </tr>
+                        <tr>
+                            <th>경도(x)</th>
+                            <td><span id="longitude">${firstDocument.address.x}</span></td>
+                        </tr>
+                    </table>
+                    <button class="copyBtn" onClick="copyToClipboard('latitude', '위도값이 복사되었습니다.')">위도값 복사</button>
+                    <button class="copyBtn" onClick="copyToClipboard('longitude', '경도값이 복사되었습니다.')">경도값 복사</button>
                 `;
             } else {
                 output = "<p>검색 결과가 없습니다. 정확한 주소를 입력해주세요.</p>";
@@ -107,12 +182,12 @@
 
             document.getElementById("result").innerHTML = output;
         }
-
+        
         function displayError(errorMessage) {
             document.getElementById("result").innerHTML = `<p>${errorMessage}</p>`;
         }
 
-        function copyToClipboard(elementId) {
+        function copyToClipboard(elementId, message) {
             const el = document.createElement('textarea');
             el.value = document.getElementById(elementId).innerText;
             el.setAttribute('readonly', '');
@@ -122,17 +197,26 @@
             document.execCommand('copy');
             document.body.removeChild(el);
 
-            alert('클립보드에 복사되었습니다.');
+            showToast(message);
+        }
+        
+        function showToast(message) {
+            $(".toast-message").text(message).fadeIn(300).delay(1500).fadeOut(300);
         }
     </script>
 </head>
 <body>
+  <div class="container">
     <h1>좌표값 변환</h1>
     <div class="search-container">
         <input type="text" id="inputAddress" placeholder="주소 입력" onkeydown="if(event.key==='Enter'){searchAddress()}">
-        <button onclick="searchAddress()">주소 검색</button>
+        <button class="searchBtn" onclick="searchAddress()">검색</button>
     </div>
     <div id="result"></div>
     <p class="credit">부경대학교 냉동공조공학과 자동제어연구실 캡스톤디자인</p>
+    <div class="toast-container">
+      <div class="toast-message"></div>
+    </div>
+  </div>
 </body>
 </html>
