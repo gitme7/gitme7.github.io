@@ -35,7 +35,7 @@
         margin-bottom: 0.7vw;
     }
     input#inputAddress {
-        width: 30vw;
+        width: 40vw;
         padding: 1vw;
         border: 1px solid #0B6CFE;
         border-radius: 24px;
@@ -84,13 +84,29 @@
         margin-right: 0.9vw;
         margin-top: 0.5vw;
     }
-    .intro {
-            color: #444;
+    .credit {
+        color: #444;
             font-size: 1.2vw;
             text-align: center;
             margin-top: 2vw;
             margin-bottom: 3vw;
-        }
+    }
+.toast-message {
+  display: none;
+  position: fixed;
+  width: 200px;
+  background-color: rgba(0, 0, 0, 0.8); /* 검정색 반투명 배경 */
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 9999;
+  left: 50%; /* 왼쪽에서 중간으로 이동 */
+  top: 90%; /* 중간으로 이동 */
+  transform: translate(-50%, -50%); /* 정확히 중앙 정렬, 위치 조정 */
+}
+
      /* 모바일 환경에 대한 미디어 쿼리 */
     @media screen and (max-width: 480px), screen and (-webkit-device-pixel-ratio: 3) {
         h1 {
@@ -116,9 +132,11 @@
             margin-right: 2vw;
             margin-top: 1vw;
         }
-       .intro {
-                font-size: 4vw;
-            }
+        .credit {
+            font-size: 3vw;
+            top: 3vw;
+            right: 5vw;
+        }
     }
 </style>
 
@@ -179,6 +197,7 @@
                     </table>
                     <button class="copyBtn" onClick="copyToClipboard('latitude', '위도값이 복사되었습니다.')">위도값 복사</button>
                     <button class="copyBtn" onClick="copyToClipboard('longitude', '경도값이 복사되었습니다.')">경도값 복사</button>
+
                 `;
             } else {
                 output = "<p>검색 결과가 없습니다. 정확한 주소를 입력해주세요.</p>";
@@ -201,23 +220,34 @@
             document.execCommand('copy');
             document.body.removeChild(el);
 
-            showToast(message);
+    showToastMessage(message); 
         }
         
-        function showToast(message) {
-            $(".toast-message").text(message).fadeIn(300).delay(1500).fadeOut(300);
-        }
+        function showToastMessage(message) {
+  const toastMessage = $(".toast-message");
+  toastMessage.text(message); // 토스트 메시지에 메시지 텍스트를 설정합니다.
+  toastMessage.fadeIn(400, function() {
+    setTimeout(function() {
+      toastMessage.fadeOut(400);
+    }, 3000);
+  });
+}
     </script>
 </head>
 <body>
   <div class="container">
-<p class="intro">부경대학교 냉동공조공학과 자동제어연구실 캡스톤디자인</p>
+  <p class="credit">부경대학교 냉동공조공학과 자동제어연구실 캡스톤디자인</p>
     <h1>좌표값 변환</h1>
     <div class="search-container">
         <input type="text" id="inputAddress" placeholder="주소 입력" onkeydown="if(event.key==='Enter'){searchAddress()}">
         <button class="searchBtn" onclick="searchAddress()">검색</button>
     </div>
-    
+    <div id="result"></div>
+  
+    <div class="toast-container">
+      <div class="toast-message"></div>
+    </div>
   </div>
 </body>
 </html>
+
